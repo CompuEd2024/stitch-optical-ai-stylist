@@ -1,0 +1,6 @@
+{
+  "name": "Envision Eyewear",
+  "description": "High-end optical styling engine providing photorealistic virtual try-on and technical frame recommendations.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": []
+}

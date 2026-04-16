@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #C5A059;
+  --color-gold-hover: #D4B270;
+  --color-charcoal: #121212;
+  --color-slate-panel: #1A1A1A;
+  --color-offwhite: #F5F5F7;
+  --color-text-muted: #8E8E93;
+  --color-border-gold: rgba(197, 160, 89, 0.2);
+  
+  --font-serif: "Georgia", serif;
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "Courier New", monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-charcoal text-offwhite font-sans antialiased;
+  }
+}
