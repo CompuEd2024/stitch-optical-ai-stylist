@@ -155,7 +155,7 @@ export const FaceScannerModal = ({ isOpen, onClose, onComplete }: FaceScannerMod
 
       const ai = new GoogleGenAI({ apiKey });
       
-      const prompt = `You are the Al Moneer Lifestyle Imaging Engine, a high-end Optical Stylist. 
+      const prompt = `You are the Envision Eyewear Lifestyle imaging Engine, a high-end Optical Stylist. 
       Analyze these three sequential frames (center, right, left) of a person performing a biometric head-turn sequence.
       
       CRITICAL REQUIREMENTS:

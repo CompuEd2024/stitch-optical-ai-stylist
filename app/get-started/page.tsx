@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'motion/react';
 import { Lock, HelpCircle, ShieldCheck, Activity } from 'lucide-react';
 

@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import { ArrowRight, Fingerprint, ShieldCheck, Sparkles, RefreshCw } from 'lucide-react';
 import { FaceScannerModal, ScanResults } from './FaceScannerModal';
 import { getTopRecommendations, getInventoryFromDB, RecommendationResult } from '@/lib/recommendations';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 export const Hero = () => {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -26,6 +27,29 @@ export const Hero = () => {
       const inventory = await getInventoryFromDB();
       const topMatches = getTopRecommendations(inventory, newResults, 3);
       setRecommendations(topMatches);
+
+      // PERSISTENCE: Save recommendations to DB
+      if (isSupabaseConfigured) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const recommendationsToInsert = topMatches.map(match => ({
+            profile_id: user.id,
+            frame_id: match.id,
+            match_score: match.matchScore,
+            scientific_rationale: match.scientificRationale
+          }));
+
+          const { error: insertError } = await supabase
+            .from('recommendations')
+            .insert(recommendationsToInsert);
+
+          if (insertError) {
+            console.error("Error persisting recommendations:", insertError.message);
+          } else {
+            console.log("Recommendations successfully persist to optical vault.");
+          }
+        }
+      }
     } catch (err) {
       console.error("Recommendation fetch error:", err);
     } finally {
@@ -56,7 +80,7 @@ export const Hero = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-[10px] uppercase tracking-[3px] text-gold mb-[16px]"
         >
-          Envision Imaging Engine // V4.2
+          Envision Eyewear Lifestyle imaging Engine // V4.2
         </motion.span>
         
         <h1 className="font-serif text-[64px] font-light leading-[1.1] mb-[24px] text-offwhite max-w-[600px]">
@@ -111,14 +135,14 @@ export const Hero = () => {
             <h4 className="text-[10px] uppercase tracking-[4px] text-gold mb-8 flex items-center gap-2 font-bold border-l-2 border-gold pl-4">
               <Sparkles size={16} /> ARCHITECTURAL CURATION_V1.0
             </h4>
-            <div className="flex flex-col gap-12">
+            <div className="flex flex-col gap-16">
               {recommendations.map((rec) => (
-                <div key={rec.id} className="group bg-charcoal border-l border-gold/40 p-0 transition-all hover:border-gold flex flex-col xl:flex-row gap-8 items-stretch overflow-hidden">
-                  <div className="relative w-full xl:w-[480px] h-[320px] bg-white/[0.03] border border-white/5 group-hover:bg-white/[0.05] transition-all overflow-hidden flex-shrink-0">
+                <div key={rec.id} className="group bg-charcoal border-l border-gold/40 p-0 transition-all hover:border-gold flex flex-col gap-8 items-stretch overflow-hidden">
+                  <div className="relative w-full h-[600px] xl:h-[800px] bg-white/[0.03] border border-white/5 group-hover:bg-white/[0.05] transition-all overflow-hidden flex-shrink-0">
                     {rec.image_url ? (
                       <Image 
                         src={rec.image_url} 
-                        alt={rec.model} 
+                        alt={rec.model || 'Eyewear Frame Recommendation'} 
                         fill 
                         className="object-contain p-8 group-hover:scale-105 transition-transform duration-700 brightness-110"
                         referrerPolicy="no-referrer"
@@ -147,14 +171,66 @@ export const Hero = () => {
                         </p>
                       </div>
                     </div>
-                    
-                    <button className="w-full xl:w-fit px-12 py-4 bg-gold text-charcoal text-[11px] font-bold uppercase tracking-[2px] hover:bg-gold-hover transition-all self-end">
-                      Initialize Virtual Fitting
-                    </button>
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* HIGH PROMINENCE DISCOUNT BANNER */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5, type: "spring", damping: 12 }}
+              className="mt-20 relative p-1 bg-gold shadow-[0_0_80px_rgba(197,160,89,0.3)]"
+            >
+              <div className="bg-charcoal p-12 border border-gold/40 relative overflow-hidden">
+                {/* Visual Flair */}
+                <div className="absolute -top-12 -left-12 w-32 h-32 bg-gold/10 rounded-full blur-3xl" />
+                <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-gold/10 rounded-full blur-3xl" />
+                
+                <div className="relative z-10 flex flex-col items-center text-center">
+                  <div className="mb-6 flex items-center gap-4">
+                    <div className="h-[1px] w-12 bg-gold/50" />
+                    <Sparkles className="text-gold" size={24} />
+                    <div className="h-[1px] w-12 bg-gold/50" />
+                  </div>
+
+                  <h3 className="text-[36px] md:text-[52px] font-serif text-offwhite mb-4 leading-tight tracking-tight">
+                    EXCLUSIVE <span className="text-gold italic">OPTICAL REWARD</span>
+                  </h3>
+                  
+                  <motion.div 
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                    className="mb-8 px-10 py-4 bg-gold text-charcoal font-serif font-black text-[32px] md:text-[48px] tracking-[4px] shadow-[0_0_30px_rgba(197,160,89,0.5)]"
+                  >
+                    5% DISCOUNT
+                  </motion.div>
+
+                  <div className="max-w-2xl space-y-8">
+                    <p className="text-offwhite text-[18px] leading-relaxed font-sans font-light tracking-wide">
+                      As a prioritized client, you have been granted an immediate <span className="text-gold font-bold">5% architectural credit</span> on your clinical selection.
+                    </p>
+                    
+                    <div className="p-8 border-t border-b border-gold/20 space-y-4">
+                      <div className="text-[12px] uppercase tracking-[4px] text-gold font-bold">HOW TO REDEEM</div>
+                      <p className="text-text-muted text-[16px] leading-[1.6]">
+                        Visit our <span className="text-offwhite font-bold underline decoration-gold/40">Boutique Optical Shop</span> and provide the specialist with your <span className="text-offwhite font-bold">registered email address</span>.
+                      </p>
+                      <p className="text-[13px] text-text-muted italic">
+                        Our opticians will immediately retrieve your biometric profile and prepare these exact frames for your bespoke fitting.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col items-center gap-4 pt-4">
+                      <div className="px-6 py-2 border border-gold/30 rounded-full text-[11px] font-mono text-gold tracking-widest flex items-center gap-3">
+                        <ShieldCheck size={14} /> ENCRYPTED_AUTH: {Math.random().toString(36).substring(7).toUpperCase()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
 

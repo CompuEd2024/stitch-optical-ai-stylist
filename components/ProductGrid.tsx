@@ -119,7 +119,7 @@ export const ProductGrid = () => {
             <div className="w-full aspect-[2/1] bg-white/5 mb-[16px] rounded-[4px] flex items-center justify-center p-8 overflow-hidden relative">
               <Image 
                 src={frame.image}
-                alt={frame.name}
+                alt={frame.name || 'Eyewear Frame'}
                 width={200}
                 height={100}
                 className="object-contain transition-transform duration-700 group-hover:scale-110"
