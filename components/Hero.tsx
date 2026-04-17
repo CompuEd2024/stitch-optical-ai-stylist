@@ -33,10 +33,21 @@ export const Hero = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const recommendationsToInsert = topMatches.map(match => ({
-            profile_id: user.id,
-            inventory_id: match.id,
+            user_id: user.id,
+            frame_name: `${match.brand} ${match.model}`,
+            frame_style: match.shape,
+            frame_color: match.color_temp,
             match_score: match.matchScore,
-            scientific_rationale: match.scientificRationale
+            image_url: match.image_url,
+            reasoning: match.scientificRationale,
+            front_size: match.front_width,
+            bridge_size: match.bridge_width,
+            temple_length: match.temple_length,
+            frame_material: match.material,
+            brand_name: match.brand,
+            model_name: match.model,
+            price: match.price,
+            discounted_price: match.price * 0.95
           }));
 
           const { error: insertError } = await supabase

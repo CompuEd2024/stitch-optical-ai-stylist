@@ -39,11 +39,24 @@ export type Profile = {
 };
 
 export type Recommendation = {
-  id: string;
-  profile_id: string;
-  inventory_id: string;
-  match_score: number;
-  scientific_rationale: string;
+  id?: string;
+  user_id: string;
+  frame_name: string;
+  frame_style?: string;
+  frame_color?: string;
+  match_score?: number;
+  image_url?: string;
+  reasoning?: string;
+  front_size?: number;
+  bridge_size?: number;
+  temple_length?: number;
+  frame_material?: string;
+  brand_name?: string;
+  model_name?: string;
+  price?: number;
+  discounted_price?: number;
+  shop_id?: string;
+  created_at?: string;
 };
 
 export type Shop = {
