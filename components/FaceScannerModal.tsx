@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Camera, RefreshCw, CheckCircle2, AlertCircle, Info } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
 
 interface FaceScannerModalProps {
   isOpen: boolean;
@@ -120,50 +119,36 @@ export const FaceScannerModal = ({ isOpen, onClose, onComplete }: FaceScannerMod
         throw new Error("Insufficient frames captured for analysis.");
       }
 
-      const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY });
-      
       // Use the center frame (usually the first or middle one)
-      const centerFrame = frames[0]?.includes(',') ? frames[0].split(',')[1] : null;
-      const rightFrame = frames[Math.floor(frames.length / 2)]?.includes(',') ? frames[Math.floor(frames.length / 2)].split(',')[1] : null;
-      const leftFrame = frames[frames.length - 1]?.includes(',') ? frames[frames.length - 1].split(',')[1] : null;
+      const centerFrameData = frames[0]?.includes(',') ? frames[0].split(',')[1] : null;
+      const rightFrameData = frames[Math.floor(frames.length / 2)]?.includes(',') ? frames[Math.floor(frames.length / 2)].split(',')[1] : null;
+      const leftFrameData = frames[frames.length - 1]?.includes(',') ? frames[frames.length - 1].split(',')[1] : null;
 
-      if (!centerFrame || !rightFrame || !leftFrame) {
+      if (!centerFrameData || !rightFrameData || !leftFrameData) {
         throw new Error("Frame data is corrupted or incomplete.");
       }
 
-      const prompt = `You are an expert optical precision analyzer. 
-      Analyze these three sequential frames (center, right, left) of a person. 
-      The person was holding a standard credit card (85.6mm width) to their forehead in the center frame (calibrate based on this standard).
-      
-      Calculate:
-      1. Interpupillary Distance (IPD) in mm.
-      2. Face Shape (Oval, Round, Square, Heart, Diamond).
-      3. Facial Symmetry Index (0.0 to 1.0).
-      4. Optimal Bridge Width (mm).
-      5. Stylist Recommendation: A brief fashion-forward reason for the suggested style.
-
-      Return ONLY a JSON object with these keys: 
-      "ipd", "faceShape", "symmetry", "bridgeWidth", "styleRecommendation"`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3.1-flash-lite-preview",
-        contents: {
-          parts: [
-            { text: prompt },
-            { inlineData: { data: centerFrame, mimeType: "image/jpeg" } },
-            { inlineData: { data: rightFrame, mimeType: "image/jpeg" } },
-            { inlineData: { data: leftFrame, mimeType: "image/jpeg" } },
-          ]
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        config: {
-          responseMimeType: "application/json"
-        }
+        body: JSON.stringify({
+          centerFrame: centerFrameData,
+          rightFrame: rightFrameData,
+          leftFrame: leftFrameData,
+        }),
       });
 
-      const results = JSON.parse(response.text || '{}');
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to analyze frames on server.");
+      }
+
+      const results = await response.json();
       onComplete(results);
       setPhase('complete');
-    } catch (err) {
+    } catch (err: any) {
       console.error("Analysis error:", err);
       // Fallback/Mock for demo if API fails
       const mockResults: ScanResults = {
