@@ -34,7 +34,7 @@ export const Hero = () => {
         if (user) {
           const recommendationsToInsert = topMatches.map(match => ({
             profile_id: user.id,
-            frame_id: match.id,
+            inventory_id: match.id,
             match_score: match.matchScore,
             scientific_rationale: match.scientificRationale
           }));
@@ -58,7 +58,7 @@ export const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-[768px] flex flex-col md:grid md:grid-cols-[1fr_400px] border-b border-border-gold overflow-hidden bg-charcoal mt-[97px]">
+    <section className="relative flex flex-col md:grid md:grid-cols-[1fr_400px] border-b border-border-gold overflow-hidden bg-charcoal mt-[97px]">
       {isScannerOpen && (
         <FaceScannerModal 
           key={isScannerOpen ? 'open' : 'closed'}
@@ -73,7 +73,7 @@ export const Hero = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
-        className="p-[48px] flex flex-col justify-center border-r border-border-gold"
+        className="p-8 md:p-12 flex flex-col justify-center border-r border-border-gold"
       >
         <motion.span 
           initial={{ opacity: 0, y: 10 }}
@@ -83,12 +83,12 @@ export const Hero = () => {
           Envision Eyewear Lifestyle imaging Engine // V4.2
         </motion.span>
         
-        <h1 className="font-serif text-[64px] font-light leading-[1.1] mb-[24px] text-offwhite max-w-[600px]">
+        <h1 className="font-serif text-[48px] md:text-[64px] font-light leading-[1.1] mb-4 text-offwhite max-w-[600px]">
           The Science of <br />
           <span className="text-gold italic">Visionary Style.</span>
         </h1>
         
-        <p className="text-[16px] leading-[1.6] text-text-muted max-w-[480px] mb-[40px]">
+        <p className="text-[16px] leading-[1.6] text-text-muted max-w-[480px] mb-8">
           {results.styleRecommendation ? results.styleRecommendation : "Leveraging sub-millimeter IPD analysis and geometric facial mapping to create optical frames that aren't just worn—they are engineered for your unique structure."}
         </p>
 
@@ -96,7 +96,7 @@ export const Hero = () => {
           <motion.div 
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="mb-[40px] p-6 bg-gold/5 border border-gold/20 rounded-lg"
+            className="mb-8 p-6 bg-gold/5 border border-gold/20 rounded-sm"
           >
             <h4 className="text-[10px] uppercase tracking-[3px] text-gold mb-3 flex items-center gap-2">
               <Fingerprint size={14} /> Comprehensive Geometric Analysis
@@ -130,7 +130,7 @@ export const Hero = () => {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-[64px] space-y-12"
+            className="mb-12 space-y-8"
           >
             <h4 className="text-[10px] uppercase tracking-[4px] text-gold mb-8 flex items-center gap-2 font-bold border-l-2 border-gold pl-4">
               <Sparkles size={16} /> ARCHITECTURAL CURATION_V1.0
@@ -248,7 +248,7 @@ export const Hero = () => {
       </motion.div>
 
       {/* Right Column: Analysis Panel */}
-      <section className="bg-slate-panel p-[48px] flex flex-col">
+      <section className="bg-slate-panel p-8 md:p-12 flex flex-col h-full border-l border-border-gold">
         <div className="text-[14px] uppercase tracking-[2px] mb-[32px] flex items-center gap-[12px] text-offwhite">
           <span className="w-2 h-2 rounded-full bg-gold" />
           Real-time Biometrics
@@ -274,7 +274,7 @@ export const Hero = () => {
           ))}
         </div>
 
-        <div className="mt-auto border border-dashed border-border-gold p-6 flex items-center justify-center relative aspect-square md:aspect-auto h-[200px]">
+        <div className="mt-12 border border-dashed border-border-gold p-6 flex items-center justify-center relative aspect-square md:aspect-auto h-[200px]">
           <svg className="w-[120px] h-[120px] stroke-gold opacity-50 transition-all" viewBox="0 0 24 24" fill="none" strokeWidth="0.5">
             <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z" />
             <circle cx="12" cy="12" r="3" />

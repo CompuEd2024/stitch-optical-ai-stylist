@@ -41,7 +41,7 @@ export type Profile = {
 export type Recommendation = {
   id: string;
   profile_id: string;
-  frame_id: string;
+  inventory_id: string;
   match_score: number;
   scientific_rationale: string;
 };
