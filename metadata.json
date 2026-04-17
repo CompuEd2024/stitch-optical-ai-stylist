@@ -1,6 +1,8 @@
 {
-  "name": "Envision Eyewear",
+  "name": "Envision Eyewear deployed version",
   "description": "High-end optical styling engine providing photorealistic virtual try-on and technical frame recommendations.",
-  "requestFramePermissions": ["camera"],
+  "requestFramePermissions": [
+    "camera"
+  ],
   "majorCapabilities": []
 }

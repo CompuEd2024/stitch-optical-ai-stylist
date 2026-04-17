@@ -88,7 +88,6 @@ export default function Home() {
       </section>
 
       <StylistSelection />
-      <ProductGrid />
       
       <Footer />
     </main>

@@ -17,13 +17,17 @@ export type Frame = {
   brand: string;
   model: string;
   price: number;
-  dimensions: {
-    front: number;
-    bridge: number;
-    temple: number;
-  };
   image_url: string;
-  category: string;
+  description: string;
+  shape: 'Angular' | 'Round' | 'Oval' | 'Aviator' | 'Geometric' | 'Cat-Eye';
+  color_temp: 'Warm' | 'Cool' | 'Neutral';
+  material: 'Acetate' | 'Titanium' | 'Metal' | 'Mix';
+  persona_match: string[]; 
+  bridge_type: 'Fixed' | 'Adjustable';
+  front_width: number;
+  bridge_width: number;
+  temple_length: number;
+  lens_depth: number;
 };
 
 export type Profile = {

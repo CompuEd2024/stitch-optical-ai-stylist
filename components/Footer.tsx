@@ -11,7 +11,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
           <div className="md:col-span-1 space-y-6">
             <Link href="/" className="text-2xl font-serif font-light tracking-[4px] text-gold uppercase">
-              Stitch
+              Envision Eyewear
             </Link>
             <p className="text-[12px] text-text-muted leading-relaxed font-medium">
               Redefining eyewear fitting through clinical precision and sophisticated AI analysis.
@@ -28,7 +28,7 @@ export const Footer = () => {
           <div className="space-y-6">
             <h4 className="text-[10px] font-serif uppercase tracking-[3px] text-gold">Product</h4>
             <div className="flex flex-col gap-4">
-              {['Collections', 'The Lab', 'Bespoke', 'Archives'].map((item) => (
+              {['Start Your Face Analysis', 'Archives'].map((item) => (
                 <Link key={item} href="#" className="text-[12px] font-medium text-text-muted hover:text-gold transition-colors">{item}</Link>
               ))}
             </div>
@@ -55,7 +55,7 @@ export const Footer = () => {
 
         <div className="pt-12 border-t border-border-gold flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-[10px] font-mono font-bold text-text-muted uppercase tracking-widest">
-            © 2024 STITCH OPTICAL. MEDICAL-GRADE ENCRYPTION ENABLED.
+            © 2024 ENVISION EYEWEAR. MEDICAL-GRADE ENCRYPTION ENABLED.
           </p>
           <div className="flex gap-8 text-[10px] font-mono font-bold text-text-muted uppercase tracking-widest text-gold">
             <span className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" /> SENSORS READY</span>

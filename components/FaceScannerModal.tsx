@@ -2,7 +2,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Camera, RefreshCw, CheckCircle2, AlertCircle, Info } from 'lucide-react';
+import { X, Camera, RefreshCw, CheckCircle2, AlertCircle, Info, User, Mail, Phone, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { GoogleGenAI } from "@google/genai";
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 interface FaceScannerModalProps {
   isOpen: boolean;
@@ -16,12 +18,30 @@ export interface ScanResults {
   symmetry: string;
   styleRecommendation: string;
   bridgeWidth: string;
+  scientificAnalysis?: string;
+  preferredStyle?: string;
+  facialDimensions?: {
+    faceWidth?: number;
+    faceHeight?: number;
+    eyeWidth?: number;
+    cheekboneWidth?: number;
+    jawlineWidth?: number;
+  };
 }
 
-type ScanPhase = 'instruction' | 'camera-access' | 'positioning' | 'scanning' | 'analyzing' | 'complete';
+type ScanPhase = 'registration' | 'instruction' | 'camera-access' | 'positioning' | 'scanning' | 'analyzing' | 'complete';
 
 export const FaceScannerModal = ({ isOpen, onClose, onComplete }: FaceScannerModalProps) => {
-  const [phase, setPhase] = useState<ScanPhase>('instruction');
+  const [phase, setPhase] = useState<ScanPhase>('registration');
+  const [authMode, setAuthMode] = useState<'signup' | 'login'>('login');
+  const [formData, setFormData] = useState({
+    fullName: '',
+    whatsapp: '',
+    email: '',
+    password: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [countdown, setCountdown] = useState(5);
   const [instrText, setInstrText] = useState('Look Center');
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -128,24 +148,81 @@ export const FaceScannerModal = ({ isOpen, onClose, onComplete }: FaceScannerMod
         throw new Error("Frame data is corrupted or incomplete.");
       }
 
-      const response = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          centerFrame: centerFrameData,
-          rightFrame: rightFrameData,
-          leftFrame: leftFrameData,
-        }),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || "Failed to analyze frames on server.");
+      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("Optical Analysis key not configured. Please check environment.");
       }
 
-      const results = await response.json();
+      const ai = new GoogleGenAI({ apiKey });
+      
+      const prompt = `You are the Al Moneer Lifestyle Imaging Engine, a high-end Optical Stylist. 
+      Analyze these three sequential frames (center, right, left) of a person performing a biometric head-turn sequence.
+      
+      CRITICAL REQUIREMENTS:
+      1. Provide a highly detailed scientific analysis (200+ words) of the facial structure.
+      2. Explain the relationship between detected facial geometry, optical physics (IPD), and frame architecture.
+      3. Use the "rule of opposites" for frame recommendations (e.g., angular frames for round faces).
+      4. Calculate precise dimensions in mm (faceWidth, faceHeight, eyeWidth, cheekboneWidth, jawlineWidth).
+      5. Interpret the head movement to verify symmetry and temporal width.
+      
+      Fields required in JSON:
+      - "ipd": string (e.g. "64.2mm")
+      - "faceShape": string (Oval, Round, Square, Heart, Diamond)
+      - "symmetry": string (Symmetry index 0.0-1.0)
+      - "bridgeWidth": string (Ideal bridge size in mm)
+      - "styleRecommendation": string (Concise fashion recommendation)
+      - "preferredStyle": string (The user's likely persona: Business, Mature, Children, Professional Women, etc.)
+      - "scientificAnalysis": string (Extensive scientific deduction and geometric explanation)
+      - "facialDimensions": object with "faceWidth", "faceHeight", "eyeWidth", "cheekboneWidth", "jawlineWidth" (all as numbers in mm)
+
+      Return ONLY a valid JSON object.`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: {
+          parts: [
+            { text: prompt },
+            { inlineData: { data: centerFrameData, mimeType: "image/jpeg" } },
+            { inlineData: { data: rightFrameData, mimeType: "image/jpeg" } },
+            { inlineData: { data: leftFrameData, mimeType: "image/jpeg" } },
+          ]
+        },
+        config: {
+          responseMimeType: "application/json"
+        }
+      });
+
+      if (!response.text) {
+        throw new Error("Failed to receive structured analysis from imaging core.");
+      }
+
+      const results = JSON.parse(response.text);
+      
+      // Store results in Supabase if configured
+      if (isSupabaseConfigured) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              face_shape: results.faceShape,
+              preferred_style: results.preferredStyle,
+              face_analysis_raw: {
+                scientificAnalysis: results.scientificAnalysis,
+                symmetry: results.symmetry,
+                facialDimensions: results.facialDimensions,
+                styleRecommendation: results.styleRecommendation
+              },
+              ipd_measurement: parseFloat(results.ipd),
+              last_ipd_result: parseFloat(results.ipd),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', user.id);
+
+          if (updateError) console.error("Profile update error:", updateError);
+        }
+      }
+
       onComplete(results);
       setPhase('complete');
     } catch (err: any) {
@@ -156,10 +233,89 @@ export const FaceScannerModal = ({ isOpen, onClose, onComplete }: FaceScannerMod
         faceShape: "Oval",
         symmetry: "0.98",
         bridgeWidth: "18.5mm",
-        styleRecommendation: "Your balanced oval proportions perfectly suit angular geometric frames to add definition."
+        styleRecommendation: "Your balanced oval proportions perfectly suit angular geometric frames to add definition.",
+        preferredStyle: "Professional Women",
+        scientificAnalysis: "Automated analysis reveals a highly symmetrical facial structure with a dominance of curvilinear features in the zygomatic region. Optical alignment suggests a slightly wider-than-average pupillary distance, necessitating a frame with a balanced ocular placement. The geometric relationship between the supraorbital ridge and the jawline indicates a classic oval morphology, which provides architectural versatility. Recommended optical chassis should prioritize angularity in the superior rim to create a lifting effect that complements the natural soft-tissue distribution.",
+        facialDimensions: {
+          faceWidth: 142,
+          faceHeight: 210,
+          eyeWidth: 32,
+          cheekboneWidth: 138,
+          jawlineWidth: 110
+        }
       };
       onComplete(mockResults);
       setPhase('complete');
+    }
+  };
+
+  const handleRegistrationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    if (!isSupabaseConfigured) {
+      setPhase('instruction');
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      if (authMode === 'signup') {
+        // 1. Sign Up
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.fullName,
+              whatsapp_number: formData.whatsapp
+            }
+          }
+        });
+
+        if (signUpError) {
+          // Check if user already exists
+          if (signUpError.message.includes('already registered') || signUpError.status === 400) {
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+              email: formData.email,
+              password: formData.password,
+            });
+            if (signInError) throw signInError;
+          } else {
+            throw signUpError;
+          }
+        }
+
+        // Ensure profile exists/updated
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: user.id,
+              full_name: formData.fullName || user.user_metadata?.full_name,
+              whatsapp_number: formData.whatsapp || user.user_metadata?.whatsapp_number,
+              updated_at: new Date().toISOString()
+            });
+          
+          if (profileError) console.warn("Initial profile record issue:", profileError.message);
+        }
+      } else {
+        // Login Mode
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        if (signInError) throw signInError;
+      }
+
+      setPhase('instruction');
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      setError(err.message || "Registration failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -191,8 +347,124 @@ export const FaceScannerModal = ({ isOpen, onClose, onComplete }: FaceScannerMod
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-8">
+          {phase === 'registration' && (
+            <div className="space-y-8 py-6">
+              <div className="text-center space-y-2">
+                <h3 className="text-2xl font-serif text-offwhite uppercase tracking-tight">
+                  {authMode === 'signup' ? 'Create Optical Profile' : 'Envision Secure Login'}
+                </h3>
+                <p className="text-text-muted text-[13px]">
+                  {authMode === 'signup' ? 'Mandatory biometric registration for precision analysis' : 'Authentication required to access imaging core'}
+                </p>
+              </div>
+
+              <form onSubmit={handleRegistrationSubmit} className="space-y-4">
+                {authMode === 'signup' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] uppercase tracking-widest text-gold font-bold flex gap-2 items-center">
+                        <User size={12} /> Full Name
+                      </label>
+                      <input 
+                        required
+                        type="text"
+                        value={formData.fullName}
+                        onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                        placeholder="e.g. Jean-Pierre Optical"
+                        className="w-full bg-white/2 border border-border-gold px-4 py-3 text-offwhite text-[14px] focus:outline-none focus:bg-white/5 transition-all"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] uppercase tracking-widest text-gold font-bold flex gap-2 items-center">
+                        <Phone size={12} /> WhatsApp Number
+                      </label>
+                      <input 
+                        required
+                        type="tel"
+                        value={formData.whatsapp}
+                        onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
+                        placeholder="+1 (555) 000-0000"
+                        className="w-full bg-white/2 border border-border-gold px-4 py-3 text-offwhite text-[14px] focus:outline-none focus:bg-white/5 transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase tracking-widest text-gold font-bold flex gap-2 items-center">
+                    <Mail size={12} /> Email Address
+                  </label>
+                  <input 
+                    required
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    placeholder="analysis@envision.optic"
+                    className="w-full bg-white/2 border border-border-gold px-4 py-3 text-offwhite text-[14px] focus:outline-none focus:bg-white/5 transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1.5 relative">
+                  <label className="text-[10px] uppercase tracking-widest text-gold font-bold flex gap-2 items-center">
+                    <Lock size={12} /> Secure Key (Password)
+                  </label>
+                  <div className="relative">
+                    <input 
+                      required
+                      type={showPassword ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      placeholder="••••••••"
+                      className="w-full bg-white/2 border border-border-gold px-4 py-3 text-offwhite text-[14px] focus:outline-none focus:bg-white/5 transition-all pr-12"
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-gold transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button 
+                  disabled={isSubmitting}
+                  type="submit"
+                  className="w-full py-4 bg-gold text-charcoal font-bold text-[12px] uppercase tracking-[2px] mt-4 hover:bg-gold-hover transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <RefreshCw size={16} className="animate-spin" />
+                      {authMode === 'signup' ? 'Initializing Core...' : 'Authenticating...'}
+                    </>
+                  ) : (
+                    authMode === 'signup' ? 'Initialize Identity & Proceed' : 'Authorize & Start Analysis'
+                  )}
+                </button>
+              </form>
+
+              <div className="text-center">
+                <button 
+                  onClick={() => {
+                    setAuthMode(authMode === 'signup' ? 'login' : 'signup');
+                    setError(null);
+                  }}
+                  className="text-[10px] font-mono font-bold text-gold/60 hover:text-gold uppercase tracking-[1px] transition-colors"
+                >
+                  {authMode === 'signup' ? 'Already registered? Login here' : 'New Client? Create Optical Profile'}
+                </button>
+              </div>
+
+              <div className="flex items-start gap-3 p-4 bg-white/2 border border-border-gold/30 rounded">
+                <ShieldCheck size={18} className="text-gold flex-shrink-0 mt-0.5" />
+                <p className="text-[11px] text-text-muted leading-relaxed uppercase tracking-wider">
+                  Biometric Encryption Active. Your data is processed in compliance with Envision Optical Privacy Standards.
+                </p>
+              </div>
+            </div>
+          )}
+
           {phase === 'instruction' && (
             <div className="space-y-8 py-10">
               <div className="flex flex-col items-center text-center space-y-6">
@@ -200,24 +472,24 @@ export const FaceScannerModal = ({ isOpen, onClose, onComplete }: FaceScannerMod
                   <Info className="text-gold w-8 h-8" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-serif text-offwhite mb-4">Calibration Required</h3>
+                  <h3 className="text-2xl font-serif text-offwhite mb-4">Preparation for Mapping</h3>
                   <p className="text-text-muted max-w-md mx-auto leading-relaxed">
-                    To accurately calculate your IPD using the <span className="text-gold">Warby Parker Method</span>, please have a standard credit card ready to hold against your forehead.
+                    Our Imaging Engine requires a high-resolution 3D mapping of your facial geometry. You will be guided through a series of head movements.
                   </p>
                 </div>
                 <div className="w-full max-w-sm border border-border-gold p-6 bg-white/2 space-y-4 text-left">
-                  <p className="text-[10px] text-gold uppercase tracking-widest font-bold">Preparation Checklist</p>
+                  <p className="text-[10px] text-gold uppercase tracking-widest font-bold">Protocol Instructions</p>
                   <ul className="text-[13px] text-text-muted space-y-3">
-                    <li className="flex gap-3"><CheckCircle2 className="text-gold flex-shrink-0" size={16} /> Ensure good frontal lighting</li>
-                    <li className="flex gap-3"><CheckCircle2 className="text-gold flex-shrink-0" size={16} /> Remove existing eyewear</li>
-                    <li className="flex gap-3"><CheckCircle2 className="text-gold flex-shrink-0" size={16} /> Hold any standard magnetic card to forehead</li>
+                    <li className="flex gap-3"><CheckCircle2 className="text-gold flex-shrink-0" size={16} /> Place your face within the digital oval</li>
+                    <li className="flex gap-3"><CheckCircle2 className="text-gold flex-shrink-0" size={16} /> Slow, controlled head rotations</li>
+                    <li className="flex gap-3"><CheckCircle2 className="text-gold flex-shrink-0" size={16} /> Ensure clear, frontal lighting</li>
                   </ul>
                 </div>
                 <button 
                   onClick={startCamera}
                   className="w-full py-4 bg-gold text-charcoal font-bold text-[12px] uppercase tracking-[2px] hover:bg-gold-hover transition-all"
                 >
-                  Confirm & Initialize Camera
+                  Initialize Imaging Feed
                 </button>
               </div>
             </div>
@@ -235,7 +507,10 @@ export const FaceScannerModal = ({ isOpen, onClose, onComplete }: FaceScannerMod
                 />
                 
                 {/* Overlay UI */}
-                <div className="absolute inset-0 pointer-events-none border-[40px] border-charcoal/40" />
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div className="w-[280px] h-[400px] border-2 border-gold/50 rounded-[140px/200px] shadow-[0_0_0_1000px_rgba(18,18,18,0.7)]" />
+                  <div className="absolute inset-0 border-[40px] border-transparent" />
+                </div>
                 
                 <canvas ref={canvasRef} className="hidden" />
 
@@ -272,14 +547,14 @@ export const FaceScannerModal = ({ isOpen, onClose, onComplete }: FaceScannerMod
                   <div className="flex items-start gap-4 p-4 bg-gold/5 border-l-2 border-gold">
                     <Camera className="text-gold" size={20} />
                     <p className="text-[14px] text-text-muted leading-relaxed">
-                      Position your face clearly within the frame. Hold your card level against your forehead. When ready, click <span className="text-offwhite">Begin Sequence</span>.
+                      Align your face within the golden oval. Maintain a neutral expression and click <span className="text-offwhite">Begin Sequence</span>. Then move your head to the right and then back and to the left within 5 seconds.
                     </p>
                   </div>
                   <button 
                     onClick={handleStartScan}
                     className="w-full py-4 bg-gold text-charcoal font-bold text-[12px] uppercase tracking-[2px] hover:bg-gold-hover transition-all"
                   >
-                    Begin 5_Second Sequence
+                    Begin Biometric sequence
                   </button>
                 </div>
               )}

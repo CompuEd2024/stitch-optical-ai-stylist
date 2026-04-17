@@ -14,7 +14,7 @@ export default function GetStarted() {
       <header className="w-full bg-charcoal/80 backdrop-blur-md z-50 border-b border-border-gold">
         <div className="flex justify-between items-center px-[48px] py-[32px] max-w-7xl mx-auto w-full">
           <Link href="/" className="text-xl font-serif font-light text-gold uppercase tracking-[4px]">
-            Stitch
+            Envision Eyewear
           </Link>
           <div className="flex items-center gap-6 text-text-muted">
             <Lock size={18} />
@@ -86,7 +86,7 @@ export default function GetStarted() {
               <div className="space-y-8">
                 <div className="space-y-2">
                   <h2 className="text-[24px] font-serif font-light text-charcoal">
-                    {mode === 'signin' ? 'Access The Lab' : 'Begin Analysis'}
+                    {mode === 'signin' ? 'Envision Secure Access' : 'Begin Analysis'}
                   </h2>
                 </div>
 
@@ -95,7 +95,7 @@ export default function GetStarted() {
                     <label className="text-[10px] font-bold uppercase tracking-widest text-charcoal/40">Credential_ID</label>
                     <input 
                       type="email" 
-                      placeholder="user@stitch.optic"
+                      placeholder="user@envision.optic"
                       className="w-full px-5 py-4 bg-charcoal/5 border-b border-charcoal/20 focus:border-gold focus:outline-none transition-all text-charcoal font-sans"
                     />
                   </div>
@@ -133,7 +133,7 @@ export default function GetStarted() {
       <footer className="w-full py-8 border-t border-border-gold bg-charcoal">
         <div className="flex flex-col md:flex-row justify-between items-center px-[48px] max-w-7xl mx-auto gap-4">
           <p className="text-text-muted font-mono font-bold text-[9px] uppercase tracking-widest">
-            © 2024 STITCH OPTICAL. ENCRYPTED_CORE.
+            © 2024 ENVISION EYEWEAR. ENCRYPTED_CORE.
           </p>
           <div className="flex gap-8 text-text-muted font-mono font-bold text-[9px] uppercase tracking-widest">
             <Link href="#" className="hover:text-gold transition-colors">Privacy_Architecture</Link>

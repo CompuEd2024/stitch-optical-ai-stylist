@@ -10,17 +10,17 @@ export const Header = () => {
     <header className="fixed top-0 w-full z-50 bg-charcoal/90 backdrop-blur-md border-b border-border-gold px-[48px] py-[32px]">
       <div className="max-w-7xl mx-auto flex justify-between items-center w-full">
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl font-serif font-light tracking-[4px] text-gold uppercase">
-            Stitch
+          <span className="text-2xl font-serif font-light tracking-[4px] text-gold uppercase whitespace-nowrap">
+            Envision Eyewear
           </span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-[32px]">
-          {['Collections', 'The Lab', 'Bespoke', 'Archives'].map((item) => (
+          {['Start Your Face Analysis', 'Archives'].map((item) => (
             <Link 
               key={item} 
               href={`#${item.toLowerCase().replace(/ /g, '-')}`}
-              className="text-[12px] font-medium text-offwhite hover:text-gold transition-colors tracking-[1px] uppercase"
+              className="text-[12px] font-medium text-offwhite hover:text-gold transition-colors tracking-[1px] uppercase whitespace-nowrap"
             >
               {item}
             </Link>

@@ -12,8 +12,8 @@ const FALLBACK_RECOMMENDATIONS = [
     name: 'The Meridian Square',
     model: 'V-101',
     price: 485.00,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB81fyQOFFBR_NSzBY6qbzz7rLLSLh7RR6vQuBeFX9h0WhPh1TSK4cK40Yk6d74Ws_vUbbYwvnSOnP2IZ-1w3kOCeMfQiE0potEGmFLCA07vlwKUG8k4sLJaL0PWGNFKeAaqvLS8oUl7_CH9S4m2M3FmMf5lKin5TSq9xK9aJorjPf9-Y7_5j9kJE7PwGu0M63uEotyOWBP24tWODX98K28mLp8BZQR3EYVBPCrr8fuPQF7mAAZRRn2FNCMN7GQLyCBv728pElU49br',
-    rationale: 'The angular bridge structure counteracts the softness of the cheekbone curvature to create optical balance.',
+    image: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?q=80&w=400&h=200&auto=format&fit=crop',
+    rationale: 'Angular architectural bridge structure optimized for soft zygomatic arches to provide geometric definition.',
     match: 99.8,
   },
   {
@@ -21,9 +21,27 @@ const FALLBACK_RECOMMENDATIONS = [
     name: 'The Zenith Circular',
     model: 'V-402',
     price: 520.00,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAwZ-SqN13SrSM9uKgKsEqovQt6W1OMVyhgalojNbYnGqrrWZedJuS8Y4RbhaE13uP3h6dQ4954bQgRyr1CqiPZkDEaRRV02njupZwLoEMvzF4QO0shZfc4OZ_w7YPeZhHeLhTyCXESDGvIO5rZVxqMmz8Op3dV-9OMUnf6gvEWA5SsYYYdQDmNpdSl-vwBSQfbteil357f0aSc8rJziImLARYJfjf9KQlizlPelepP5Rl_Qsz36QaPE_1NlqNNq66JZwmDIS59VzHF',
-    rationale: 'Frame width optimized for 142mm zygomatic breadth to ensure temporal comfort without pressure points.',
+    image: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&h=200&auto=format&fit=crop',
+    rationale: 'Spherical chassis designed to integrate with 142mm temporal width without inducing pressure on the trigeminal nerve.',
     match: 98.5,
+  },
+  {
+    id: 'V-203',
+    name: 'The Aviator Hybrid',
+    model: 'V-203',
+    price: 495.00,
+    image: 'https://images.unsplash.com/photo-1511499767390-a73565978f53?q=80&w=400&h=200&auto=format&fit=crop',
+    rationale: 'Reinforced titanium bridge with 0.4mm precision adjustment for asymmetric nasal profiles.',
+    match: 97.2,
+  },
+  {
+    id: 'V-305',
+    name: 'The Geometric Frame',
+    model: 'V-305',
+    price: 550.00,
+    image: 'https://images.unsplash.com/photo-1509100104048-6373f55d9941?q=80&w=400&h=200&auto=format&fit=crop',
+    rationale: 'Optimized for high-index lenses. The thickness of the acetate frame conceals lens periphery for superior aesthetics.',
+    match: 96.8,
   }
 ];
 
