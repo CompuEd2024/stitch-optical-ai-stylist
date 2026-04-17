@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "GOOGLE_GENERATIVE_AI_API_KEY is not configured on server." }, { status: 500 });
     }
 
-    const ai = new GoogleGenAI(apiKey);
+    const ai = new GoogleGenAI({ apiKey }) as any;
     
     const prompt = `You are an expert optical precision analyzer. 
     Analyze these three sequential frames (center, right, left) of a person. 
@@ -33,26 +33,22 @@ export async function POST(req: Request) {
     Return ONLY a JSON object with these keys: 
     "ipd", "faceShape", "symmetry", "bridgeWidth", "styleRecommendation"`;
 
-    const response = await ai.getGenerativeModel({
+    const response = await ai.models.generateContent({
       model: "gemini-3.1-flash-lite-preview",
-      generationConfig: {
+      contents: {
+        parts: [
+          { text: prompt },
+          { inlineData: { data: centerFrame, mimeType: "image/jpeg" } },
+          { inlineData: { data: rightFrame, mimeType: "image/jpeg" } },
+          { inlineData: { data: leftFrame, mimeType: "image/jpeg" } },
+        ]
+      },
+      config: {
         responseMimeType: "application/json"
       }
-    }).generateContent({
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: prompt },
-            { inlineData: { data: centerFrame, mimeType: "image/jpeg" } },
-            { inlineData: { data: rightFrame, mimeType: "image/jpeg" } },
-            { inlineData: { data: leftFrame, mimeType: "image/jpeg" } },
-          ]
-        }
-      ]
     });
 
-    const results = JSON.parse(response.response.text() || '{}');
+    const results = JSON.parse(response.text || '{}');
     return NextResponse.json(results);
 
   } catch (error: any) {
