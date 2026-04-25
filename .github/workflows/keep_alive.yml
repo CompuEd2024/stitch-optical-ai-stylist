@@ -1,0 +1,18 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    # This runs at 00:00 every 3 days to ensure the project stays active
+    - cron: '0 0 */3 * *'
+  workflow_dispatch:
+    # This allows you to manually click "Run workflow" in the Actions tab
+
+jobs:
+  ping_supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Inventory Table
+        run: |
+          curl -i -X GET "https://ulppwtopbntptnywanis.supabase.co/rest/v1/inventory?select=*&limit=1" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
